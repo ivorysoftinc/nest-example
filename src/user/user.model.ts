@@ -1,6 +1,8 @@
-import { Column, Model, Table, DataType } from 'sequelize-typescript';
+import { BeforeSave, BeforeUpdate, Column, DataType, Model, Table, Unique } from 'sequelize-typescript';
 import * as bcrypt from 'bcryptjs';
 import Sequelize from 'sequelize';
+import { Role } from '../common/roles';
+import { enumValidate } from '../common/helpers';
 
 @Table({ timestamps: true })
 export class User extends Model {
@@ -14,13 +16,17 @@ export class User extends Model {
   @Column({ type: DataType.STRING, allowNull: false })
   name: string;
 
-  @Column({ type: DataType.STRING, unique: true })
+  @Unique({
+    name: 'email',
+    msg: 'user with this email already exists',
+  })
+  @Column(DataType.STRING)
   email: string;
 
   @Column({
-    type: DataType.ENUM,
-    values: ['user', 'admin', 'superAdmin'],
-    defaultValue: 'user',
+    type: DataType.STRING,
+    validate: { isEnum: enumValidate(Role) },
+    defaultValue: Role.User,
   })
   role: string;
 
@@ -28,17 +34,18 @@ export class User extends Model {
   password: string;
 
   publicFields: () => any;
+
+  @BeforeUpdate
+  @BeforeSave
+  public static async password(user: User) {
+    if (user.changed('password')) {
+      user.password = await bcrypt.hash(user.password, 8);
+    }
+  }
 }
 
-User.beforeSave(async (user: User) => {
-  if (user.changed('password')) {
-    user.password = await bcrypt.hash(user.password, 8);
-  }
-});
-
 User.prototype.publicFields = function () {
-  const userObject: any = { ...this.dataValues };
-  delete userObject.userId;
-  delete userObject.customerId;
+  const userObject = { ...this.dataValues };
+  delete userObject.password;
   return userObject;
 };

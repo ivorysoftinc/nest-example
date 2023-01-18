@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 16.x
+  pre_build:
+    commands:
+      - echo Installing dependencies...
+      - npm install
+  build:
+    commands:
+      - echo Starting E2E Tests...
+      - node -v
+      - npm run test:e2e
+      - echo Building Application...
+      - npm run build
+artifacts:
+  files:
+    - '**/*'

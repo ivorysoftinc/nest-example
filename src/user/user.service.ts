@@ -1,31 +1,22 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './user.model';
-import { CreateUserDto } from './dto/create-new-user.dto';
+import { WhereOptions } from 'sequelize/types/model';
+import { FindOptions } from '@nestjs/schematics';
 
 @Injectable()
 export class UserService {
-  private logger: Logger;
-  constructor(@InjectModel(User) private userModel: typeof User) {
-    this.logger = new Logger('UserService');
-  }
+  constructor(@InjectModel(User) private userModel: typeof User) {}
 
-  async findById(id: string): Promise<User | null> {
+  public async findById(id: string): Promise<Nullable<User>> {
     return this.userModel.findByPk(id);
   }
 
-  async findOne(filter: any): Promise<User | null> {
-    return this.userModel.findOne({ where: filter });
+  public async findOne(filter: WhereOptions, options?: FindOptions): Promise<Nullable<User>> {
+    return this.userModel.findOne({ where: filter, ...options });
   }
 
-  async create(data: CreateUserDto): Promise<User> {
+  public async create(data: Partial<User>): Promise<User> {
     return this.userModel.create({ ...data });
-  }
-
-  async findOneAndUpdate(filter: any, newData: any): Promise<User> {
-    const user = await this.userModel.findOne({ where: filter });
-    Object.keys(newData).forEach((item) => (user[item] = newData[item]));
-    await user.save();
-    return user;
   }
 }

@@ -10,16 +10,16 @@ import {
 } from '@nestjs/websockets';
 import WebSocket, { Server } from 'ws';
 import { Logger, UseFilters, UseGuards, UsePipes } from '@nestjs/common';
-import { configuration } from '../config/configuration';
+import { configuration } from '../common/config/configuration';
 import { EventsService } from './events.service';
-import { WebsocketExceptionsFilter } from '../filters/websocket-exceptions.filter';
-import { WsValidationPipe } from '../pipes/ws-validation.pipe';
-import { WsThrottlerGuard } from '../throttle-guards/ws-throttler-guard';
+import { WsValidationPipe } from '../common/pipes/ws-validation.pipe';
 import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 import { Reflector } from '@nestjs/core';
-import Redis from 'ioredis/built/Redis';
-import { EventActions } from './enums/eventActions.enum';
+import { Redis } from 'ioredis';
+import { EventActions } from './enums/event-actions.enum';
 import { GetUserInfoDto } from './dto/get-user-info.dto';
+import { WebsocketExceptionsFilter } from '../common/filters/websocket-exception.filter';
+import { WsThrottlerGuard } from '../common/throttle-guards/ws-throttler.guard';
 
 const {
   server: { memoryDebug, wsUrl },
@@ -47,9 +47,7 @@ const {
 )
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(WsValidationPipe)
-export class EventsGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
   private logger: Logger;
@@ -62,12 +60,8 @@ export class EventsGateway
     this.logger.log(`Socket-server up at: ${wsUrl}`);
     if (memoryDebug) {
       setInterval(() => {
-        let used = process.memoryUsage().heapUsed / 1024 / 1024;
-        this.logger.log(
-          `RAM: ${Math.round(used * 100) / 100}. QUEUE: ${
-            Object.keys(this.eventsService.getSockets()).length
-          }`,
-        );
+        const used = process.memoryUsage().heapUsed / 1024 / 1024;
+        this.logger.log(`RAM: ${Math.round(used * 100) / 100}. QUEUE: ${Object.keys(this.eventsService.getSockets()).length}`);
       }, 5000);
     }
   }
@@ -81,10 +75,7 @@ export class EventsGateway
   }
 
   @SubscribeMessage(EventActions.GetUserInfo)
-  async handleEventInit(
-    @MessageBody() data: GetUserInfoDto,
-    @ConnectedSocket() client: WebSocket,
-  ): Promise<Record<string, string>> {
+  async handleEventInit(@MessageBody() data: GetUserInfoDto, @ConnectedSocket() client: WebSocket): Promise<Record<string, string>> {
     const userInfo = this.eventsService.getUserInfo(client, data);
 
     return userInfo;

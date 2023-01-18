@@ -7,12 +7,17 @@
     
 ## Description
 
-This project are example of IvorySoft code best practices and have realization of next functionallity:
-- Creating new user
-- Login through email and password
-- Guard for api via roles
-- DDOS Throttle Guard for Rest API and WebSockets
-- Simple WebSocket server
+This project is example of IvorySoft code best practices and have realization of next functionallity:
+- Creating new user, login through email and password
+- Guard for API via roles
+- Swagger API Documentation on `/api-docs` endpoint
+- OWASP Security Practices
+  - Helmet
+  - Request Content Size Limits ([json and urlencoded](src/common/middlewares) middlewares)
+  - Strict input validation ([validation pipe](src/main.ts))
+  - [All Exception / Sequelize Error Handler](src/common/filters/all-exception.filter.ts) 
+- Sequelize ORM and User model for **PostgreSQL**
+- AWS: Configured `buildspec.yml`, `Procfile`
 
 ## Requirements
 
@@ -53,6 +58,6 @@ $ npm run test:cov
 
 ## Stay in touch
 
-- Author - [Denis Dunaievskiy](https://github.com/Denver23)
+- Authors - [Denis Dunaievskiy](https://github.com/Denver23) | [Dmitry Donchenko](https://github.com/dmitrydnch)
 - Website - [https://ivorysoft.co/](https://ivorysoft.co/)
 - Instagram - [@ivorysoft.co](https://www.instagram.com/ivorysoft.co/)

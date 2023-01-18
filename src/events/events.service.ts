@@ -1,9 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
-import {
-  getDesktopPlatform,
-  getDeviceFromUserAgent,
-} from '../utils/userAgentHelper';
+import { getDesktopPlatform, getDeviceFromUserAgent } from '../common/helpers/userAgentHelper';
 import { GetUserInfoDto } from './dto/get-user-info.dto';
 
 let socketsExternalObjectLink;
@@ -19,7 +16,7 @@ export class EventsService {
   }
 
   addSocket(socket: WebSocket, request: any) {
-    let ss = new SingleSocket(socket, request);
+    const ss = new SingleSocket(socket, request);
     this.sockets[ss.id] = ss;
   }
 
@@ -35,6 +32,7 @@ export class EventsService {
   async directClose(socketId: string) {
     if (!this.sockets[socketId]) return;
     this.sockets[socketId].socket.close();
+    this.sockets[socketId].socket.close();
     this.removeSocket(socketId);
   }
 
@@ -46,16 +44,9 @@ export class EventsService {
     return this.sockets[socketId];
   }
 
-  getUserInfo(
-    socket: WebSocket,
-    data: GetUserInfoDto,
-  ): { device: string; platform: string; message: string } {
-    const device = getDeviceFromUserAgent(
-      (socket as any).request.headers['user-agent'] || 'Unknown',
-    );
-    const platform = getDesktopPlatform(
-      (socket as any).request.headers['user-agent'] || 'Unknown',
-    );
+  getUserInfo(socket: WebSocket, data: GetUserInfoDto): { device: string; platform: string; message: string } {
+    const device = getDeviceFromUserAgent((socket as any).request.headers['user-agent'] || 'Unknown');
+    const platform = getDesktopPlatform((socket as any).request.headers['user-agent'] || 'Unknown');
     return { device, platform, message: data.message };
   }
 
